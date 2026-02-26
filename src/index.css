@@ -193,8 +193,8 @@ body {
 
 /* ===== Main Content ===== */
 .main-content {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  flex-direction: row;
   flex: 1;
   overflow: hidden;
   min-height: 0;
@@ -204,20 +204,66 @@ body {
 .left-pane {
   display: flex;
   flex-direction: column;
-  border-right: 1px solid var(--border-color);
   overflow: hidden;
+  width: 100%;
+  height: 100%;
 }
 
 .editor-section {
   display: flex;
   flex-direction: column;
-  flex: 1;
-  min-height: 0;
   overflow: hidden;
+  min-height: 0;
 }
 
-.editor-section + .editor-section {
-  border-top: 1px solid var(--border-color);
+/* ===== Split Handles ===== */
+.split-handle {
+  flex-shrink: 0;
+  position: relative;
+  z-index: 10;
+  transition: background 0.2s ease;
+}
+
+/* Vertical handle: sits between left/right panes (drag left-right) */
+.split-handle--vertical {
+  width: 5px;
+  cursor: col-resize;
+  background: var(--border-color);
+}
+.split-handle--vertical:hover {
+  background: var(--accent-indigo);
+}
+.split-handle--vertical::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 1px;
+  height: 32px;
+  background: var(--text-muted);
+  border-radius: 1px;
+}
+
+/* Horizontal handle: sits between top/bottom sections (drag up-down) */
+.split-handle--horizontal {
+  height: 5px;
+  cursor: row-resize;
+  background: var(--border-color);
+}
+.split-handle--horizontal:hover {
+  background: var(--accent-indigo);
+}
+.split-handle--horizontal::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 32px;
+  height: 1px;
+  background: var(--text-muted);
+  border-radius: 1px;
 }
 
 .editor-label {
@@ -277,21 +323,62 @@ body {
   flex-direction: column;
   overflow: hidden;
   background: var(--bg-primary);
+  width: 100%;
+  height: 100%;
 }
 
-.preview-header {
+/* ===== Diagram Sub-Pane ===== */
+.diagram-sub-pane {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.sub-pane-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.5rem 0.875rem;
-  font-size: 0.6875rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--text-muted);
+  padding: 0.25rem 0.75rem;
   background: var(--bg-elevated);
   border-bottom: 1px solid var(--border-color);
-  min-height: 32px;
+  min-height: 30px;
+  flex-shrink: 0;
+}
+
+.engine-badge {
+  font-size: 0.625rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.125rem 0.5rem;
+  border-radius: 4px;
+}
+
+.engine-badge--mermaid {
+  background: rgba(99, 102, 241, 0.15);
+  color: var(--accent-indigo);
+}
+
+.engine-badge--plantuml {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--accent-emerald);
+}
+
+.diagram-content {
+  flex: 1;
+  overflow: auto;
+  padding: 1.25rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  cursor: grab;
+  min-height: 0;
+}
+
+.diagram-content.dragging {
+  cursor: grabbing;
+  user-select: none;
 }
 
 .preview-status {
@@ -300,8 +387,7 @@ body {
   gap: 0.375rem;
   font-size: 0.625rem;
   font-weight: 500;
-  text-transform: none;
-  letter-spacing: 0;
+  color: var(--text-muted);
 }
 
 .status-dot {
@@ -322,27 +408,16 @@ body {
   50% { opacity: 0.4; }
 }
 
-.preview-content {
-  flex: 1;
-  overflow: auto;
-  padding: 1.5rem;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  cursor: grab;
-}
+/* Delete old .preview-content — replaced by .diagram-content */
 
-.preview-content.dragging {
-  cursor: grabbing;
-  user-select: none;
-}
-
-.preview-content svg {
+.preview-content svg,
+.diagram-content svg {
   max-width: 100%;
   height: auto;
 }
 
-.preview-content img {
+.preview-content img,
+.diagram-content img {
   max-width: 100%;
   height: auto;
 }
@@ -464,13 +539,13 @@ body {
 /* ===== Responsive ===== */
 @media (max-width: 768px) {
   .main-content {
-    grid-template-columns: 1fr;
-    grid-template-rows: 1fr 1fr;
+    flex-direction: column;
   }
 
-  .left-pane {
-    border-right: none;
-    border-bottom: 1px solid var(--border-color);
+  .split-handle--vertical {
+    width: 100%;
+    height: 5px;
+    cursor: row-resize;
   }
 }
 

@@ -25,20 +25,23 @@ export default function Header({ mode, onModeChange, onImport, onExportImage, on
       </div>
 
       <div className="header-actions">
-        {/* Mode Toggle */}
-        <div className="mode-toggle">
-          <button
-            className={`mode-toggle-btn ${mode === 'mermaid' ? 'active' : ''}`}
-            onClick={() => onModeChange('mermaid')}
-          >
-            Mermaid
-          </button>
-          <button
-            className={`mode-toggle-btn ${mode === 'plantuml' ? 'active' : ''}`}
-            onClick={() => onModeChange('plantuml')}
-          >
-            PlantUML
-          </button>
+        {/* Mode Toggle — Active Editor Tab */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <span style={{ fontSize: '0.6875rem', color: 'var(--text-muted)', fontWeight: 500 }}>Editor:</span>
+          <div className="mode-toggle">
+            <button
+              className={`mode-toggle-btn ${mode === 'mermaid' ? 'active' : ''}`}
+              onClick={() => onModeChange('mermaid')}
+            >
+              Mermaid
+            </button>
+            <button
+              className={`mode-toggle-btn ${mode === 'plantuml' ? 'active' : ''}`}
+              onClick={() => onModeChange('plantuml')}
+            >
+              PlantUML
+            </button>
+          </div>
         </div>
 
         {/* Import */}

@@ -1,3 +1,6 @@
+import { useRef } from 'react';
+import useResizableSplit from '../hooks/useResizableSplit';
+
 export default function LeftPane({
   requirements,
   onRequirementsChange,
@@ -5,6 +8,9 @@ export default function LeftPane({
   onCodeChange,
   mode,
 }) {
+  const containerRef = useRef(null);
+  const [splitPercent, handleSplitMouseDown] = useResizableSplit(40, 'vertical', containerRef);
+
   const codePlaceholder =
     mode === 'mermaid'
       ? `graph TD
@@ -19,9 +25,9 @@ Bob --> Alice: Hi there!
 @enduml`;
 
   return (
-    <div className="left-pane">
+    <div className="left-pane" ref={containerRef}>
       {/* Requirements Section */}
-      <div className="editor-section">
+      <div className="editor-section" style={{ height: `${splitPercent}%` }}>
         <div className="editor-label">
           <span className="editor-label-dot"></span>
           Requirements
@@ -35,8 +41,15 @@ Bob --> Alice: Hi there!
         />
       </div>
 
+      {/* Drag Handle */}
+      <div
+        className="split-handle split-handle--horizontal"
+        onMouseDown={handleSplitMouseDown}
+        title="Drag to resize"
+      />
+
       {/* Code Editor Section */}
-      <div className="editor-section">
+      <div className="editor-section" style={{ height: `${100 - splitPercent}%` }}>
         <div className="editor-label">
           <span className="editor-label-dot emerald"></span>
           {mode === 'mermaid' ? 'Mermaid' : 'PlantUML'} Code
