@@ -41,40 +41,42 @@ function saveState(state) {
 }
 
 /**
- * Resolve a PNG blob from whatever is currently rendered in the preview.
+ * Resolve an image blob from whatever is currently rendered in the preview.
  * @param {'mermaid'|'plantuml'} engine
  */
-async function getDiagramPngBlob(engine) {
+async function getDiagramBlob(engine) {
   if (engine === 'mermaid') {
     const svgEl = document.querySelector('.diagram-content--mermaid svg');
-    if (!svgEl) return null;
+    if (!svgEl) return { blob: null, ext: 'svg' };
+
     const cloned = svgEl.cloneNode(true);
     cloned.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-    const url = URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(cloned)], { type: 'image/svg+xml;charset=utf-8' }));
-    return new Promise((resolve) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const scale = 2;
-        canvas.width = img.width * scale;
-        canvas.height = img.height * scale;
-        const ctx = canvas.getContext('2d');
-        ctx.scale(scale, scale);
-        ctx.fillStyle = '#0f172a';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(img, 0, 0);
-        canvas.toBlob((blob) => { URL.revokeObjectURL(url); resolve(blob); }, 'image/png');
-      };
-      img.onerror = () => { URL.revokeObjectURL(url); resolve(null); };
-      img.src = url;
-    });
+
+    // Ensure it has a solid background so it looks good when opened in image viewers
+    cloned.style.backgroundColor = '#0f172a'; // Match the app's dark theme background
+
+    // Read full dimensions to ensure explicit width/height
+    const viewBox = svgEl.getAttribute('viewBox');
+    if (viewBox) {
+      const parts = viewBox.split(/[\s,]+/).map(Number);
+      cloned.setAttribute('width', parts[2]);
+      cloned.setAttribute('height', parts[3]);
+    } else {
+      const bbox = svgEl.getBBox();
+      cloned.setAttribute('width', bbox.width + bbox.x);
+      cloned.setAttribute('height', bbox.height + bbox.y);
+    }
+
+    const svgData = new XMLSerializer().serializeToString(cloned);
+    const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+    return { blob, ext: 'svg' };
   } else {
     const imgEl = document.querySelector('.diagram-content--plantuml img');
-    if (!imgEl?.src) return null;
+    if (!imgEl?.src) return { blob: null, ext: 'png' };
     try {
       const res = await fetch(imgEl.src.replace('/plantuml/svg/', '/plantuml/png/'));
-      return await res.blob();
-    } catch { return null; }
+      return { blob: await res.blob(), ext: 'png' };
+    } catch { return { blob: null, ext: 'png' }; }
   }
 }
 
@@ -106,10 +108,10 @@ export default function App() {
 
   // Save image (active engine)
   const handleExportImage = useCallback(async () => {
-    const blob = await getDiagramPngBlob(mode);
+    const { blob, ext } = await getDiagramBlob(mode);
     if (!blob) { alert('No diagram rendered yet.'); return; }
     const link = document.createElement('a');
-    link.download = `diagram-${mode}-${Date.now()}.png`;
+    link.download = `diagram-${mode}-${Date.now()}.${ext}`;
     link.href = URL.createObjectURL(blob);
     link.click();
     URL.revokeObjectURL(link.href);
@@ -122,12 +124,12 @@ export default function App() {
     zip.file('diagram.mmd', mermaidCode || '(empty)');
     zip.file('diagram.puml', plantumlCode || '(empty)');
 
-    const [mBlob, pBlob] = await Promise.all([
-      getDiagramPngBlob('mermaid'),
-      getDiagramPngBlob('plantuml'),
+    const [mResult, pResult] = await Promise.all([
+      getDiagramBlob('mermaid'),
+      getDiagramBlob('plantuml'),
     ]);
-    if (mBlob) zip.file('chart-mermaid.png', mBlob);
-    if (pBlob) zip.file('chart-plantuml.png', pBlob);
+    if (mResult.blob) zip.file(`chart-mermaid.${mResult.ext}`, mResult.blob);
+    if (pResult.blob) zip.file(`chart-plantuml.${pResult.ext}`, pResult.blob);
 
     const content = await zip.generateAsync({ type: 'blob' });
     const link = document.createElement('a');

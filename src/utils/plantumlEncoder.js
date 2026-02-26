@@ -11,7 +11,7 @@ export function encodePlantUML(text) {
   const data = new TextEncoder().encode(text);
   const deflated = pako.deflateRaw(data, { level: 9 });
   const encoded = encode64(deflated);
-  return `http://www.plantuml.com/plantuml/svg/${encoded}`;
+  return `https://www.plantuml.com/plantuml/svg/${encoded}`;
 }
 
 /**

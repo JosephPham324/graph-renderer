@@ -6,9 +6,8 @@ import useResizableSplit from '../hooks/useResizableSplit';
 // Initialize mermaid with dark theme once
 mermaid.initialize({
   startOnLoad: false,
-  theme: 'dark',
+  theme: 'forest',
   securityLevel: 'loose',
-  fontFamily: "'Inter', sans-serif",
 });
 
 const ZOOM_STEP = 0.15;
