@@ -114,7 +114,7 @@ function DiagramPane({ code, engine, style }) {
         }
       }
       setRendering(false);
-    }, 300);
+    }, 500);
 
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
   }, [code, engine, renderMermaid]);
